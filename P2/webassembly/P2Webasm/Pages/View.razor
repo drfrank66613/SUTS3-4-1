@@ -1,0 +1,35 @@
+﻿@page "/view/{id:int}"
+@inject NavigationManager NavigationManager
+@inject IDatabase IDatabase
+
+
+<h3>View Product</h3>
+
+<img src="@(viewedProduct.Image)" width="280" height="310" />
+<p>Name: @viewedProduct.Name</p>
+<p>Price: $@viewedProduct.Price</p>
+<p>Description: @viewedProduct.Description</p>
+
+@*@for (var i = 0; i < product.Count; i++)
+    {
+<ProductCard></ProductCard>
+    }*@
+
+@code {
+
+    [Parameter] public int id { get; set; }
+
+    private Product viewedProduct = null;
+
+    protected override void OnParametersSet()
+    {
+        viewedProduct = IDatabase.Get().Find(x => x.Id == id);
+    }
+
+    //List<Product> product;
+
+    //protected override async Task OnInitializedAsync()
+    //{
+    //    product = IDatabase.Get();
+    //}
+    }

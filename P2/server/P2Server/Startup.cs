@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using P2Server.Model;
 using P2Server.Misc;
+using Microsoft.EntityFrameworkCore;
 
 namespace P2Server
 {
@@ -24,7 +25,8 @@ namespace P2Server
         {
             services.AddRazorPages();
             services.AddServerSideBlazor();
-            services.AddSingleton<IDatabase>(new Database());
+            // services.AddSingleton<IDatabase>(new Database());
+            services.AddDbContext<Database>(options => options.UseSqlite("Data Source=./Misc/product.db"));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

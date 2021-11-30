@@ -1,12 +1,58 @@
-﻿@page "/edit"
+﻿@page "/edit/{id:int}"
+@using System.IO
+@inject NavigationManager NavigationManager
+@inject Database Database
 
-<h3>Edit</h3>
+<h3>Edit Product</h3>
 
-<p> Should be able to add product here </p>
+<div>
+    <p>
+        <label for="prodName">Product Name:</label><br />
+        <input type="text" id="prodName" @bind-value="@updatedProduct.Name" />
+    </p>
+    <p>
+        <label for="prodPrice">Product Price:</label><br />
+        <input type="text" id="prodPrice" @bind="@updatedProduct.Price" />
+    </p>
+    <p>
+        <label for="prodDesc">Product Description</label><br />
+        <textarea name="prodDesc" rows="5" cols="50" @bind="@updatedProduct.Description"></textarea>
+    </p>
+    <p>
+        <label for="prodImage">Product Image</label><br />
+        <InputFile OnChange="@LoadImage" accept="Images/*" id="prodImage" />
+    </p>
+    <p>
+        <button @onclick="UpdateProduct">Edit</button>
+        <button @onclick="@(() => NavigationManager.NavigateTo("/"))">Cancel</button>
+    </p>
+</div>
 
-<p> Should be able to delete product here </p>
+@code
+{
+    [Parameter] public int id { get; set; }
 
+    private async Task LoadImage(InputFileChangeEventArgs e)
+    {
+        var image = e.File;
+        MemoryStream ms = new MemoryStream();
+        await image.OpenReadStream(long.MaxValue).CopyToAsync(ms);
+        updatedProduct.Image = "data:" + image.ContentType + ";base64," + Convert.ToBase64String(ms.ToArray());
+    }
 
-@code {
+    private Product updatedProduct = null;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        updatedProduct = await Database.Products.FindAsync(id);
+    }
+
+    private async Task UpdateProduct()
+    {
+        Database.Products.Update(updatedProduct);
+        await Database.SaveChangesAsync();
+        NavigationManager.NavigateTo("/");
+    }
+
 
 }

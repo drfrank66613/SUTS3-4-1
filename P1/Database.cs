@@ -22,18 +22,94 @@ namespace P1
      */
     static class Database
     {
-        public static SqliteConnection CreateConnection() 
+        public static SqliteConnection CreateConnection()
         {
-            return null;
+            return new SqliteConnection("Data Source=product.db");
         }
 
-        public static void CreateTable(this SqliteConnection conn) { }
-
-        public static void InsertProducts(this SqliteConnection conn, IEnumerable<Product> products) { }
-        
-        public static IEnumerable<Product> ReadProducts(this SqliteConnection conn) 
+        public static void CreateTable(this SqliteConnection conn)
         {
-            return new List<Product>();
+            var table = conn.CreateCommand();
+            table.CommandText = "CREATE TABLE Product(id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE, name varchar(50), description varchar(255), colour varchar(30), price decimal(20, 2));";
+            table.ExecuteNonQuery();
+        }
+
+        public static void DeleteProduct(this SqliteConnection conn, int id)
+        {
+            var delete = conn.CreateCommand();
+            delete.CommandText = "DELETE FROM Product WHERE id = @id;";
+            delete.Parameters.AddWithValue("@id", id);
+            delete.ExecuteNonQuery();
+        }
+
+        public static Product GetProduct(this SqliteConnection conn, int id)
+        {
+            var select = conn.CreateCommand();
+            select.CommandText = "SELECT * FROM Product WHERE id = @id;";
+            select.Parameters.AddWithValue("@id", id);
+
+            using (var reader = select.ExecuteReader())
+            {
+                Product product = new Product();
+                while (reader.Read())
+                {
+                    var tempId = reader.GetInt32(0);
+                    var name = reader.GetString(1);
+                    var description = reader.GetString(2);
+                    var colour = reader.GetString(3);
+                    var price = reader.GetDecimal(4);
+
+                    product.Id = tempId;
+                    product.Name = name;
+                    product.Description = description;
+                    product.Colour = colour;
+                    product.Price = price;
+
+                }
+                return product;
+            }
+        }
+
+        public static void InsertProducts(this SqliteConnection conn, IEnumerable<Product> products)
+        {
+
+            foreach (Product product in products)
+            {
+                var insert = conn.CreateCommand();
+                insert.CommandText = "INSERT INTO Product ('name', 'description', 'colour', 'price') VALUES (@name, @description, @colour, @price)";
+
+                insert.Parameters.AddWithValue("@name", product.Name);
+                insert.Parameters.AddWithValue("@description", product.Description);
+                insert.Parameters.AddWithValue("@colour", product.Colour);
+                insert.Parameters.AddWithValue("@price", product.Price);
+
+                insert.ExecuteNonQuery();
+
+            }
+
+        }
+
+        public static IEnumerable<Product> ReadProducts(this SqliteConnection conn)
+        {
+            var select = conn.CreateCommand();
+            select.CommandText = "SELECT * FROM Product;";
+            using (var reader = select.ExecuteReader())
+            {
+                List<Product> products = new List<Product>();
+                while (reader.Read())
+                {
+                    var id = reader.GetInt32(0);
+                    var name = reader.GetString(1);
+                    var description = reader.GetString(2);
+                    var colour = reader.GetString(3);
+                    var price = reader.GetDecimal(4);
+
+                    Product product = new Product(name, description, colour, price);
+                    product.Id = id;
+                    products.Add(product);
+                }
+                return products;
+            }
         }
     }
 }

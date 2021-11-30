@@ -1,20 +1,42 @@
 ﻿@page "/"
+@inject NavigationManager NavigationManager
+@inject IDatabase IDatabase
 
-<h1>P2</h1>
+<h1>All Products</h1>
 
-You are required to develop this application
+<button class="button" @onclick="@(() => NavigationManager.NavigateTo("/add"))">Add New Product</button>
+<br />
 
-<h3>Products</h3>
-@for (var i = 0; i < product.Count; i++)
+@if (products != null)
 {
-    <ProductCard></ProductCard>
+    <div class="grid-container">
+        @foreach (var product in products)
+        {
+            <div>
+                <img src="@(product.Image)" width="280" height="310" />
+                <p>Name: @product.Name</p>
+                <p>Price: $@product.Price</p>
+                <button @onclick="@(() => NavigationManager.NavigateTo("/view/" + product.Id))">View</button>
+                <button @onclick="@(() => NavigationManager.NavigateTo("/edit/" + product.Id))">Edit</button>
+                <button @onclick="() => DeleteProduct(product)">Delete</button>
+                <br />
+            </div>
+        }
+    </div>
+
 }
 
 @code {
-    List<Product> product;
 
-    protected override async Task OnInitializedAsync()
+    public List<Product> products;
+
+    protected override void OnInitialized()
     {
-        product = IDatabase.Get();
+        products = IDatabase.Get();
+    }
+
+    private void DeleteProduct(Product product)
+    {
+        products.Remove(product);
     }
 }

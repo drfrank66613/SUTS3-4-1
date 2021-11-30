@@ -1,0 +1,57 @@
+﻿@page "/add"
+@using System.IO
+@inject NavigationManager NavigationManager
+@inject IDatabase IDatabase
+
+<h3>Add New Product</h3>
+
+<div>
+    <p>
+        <label for="prodName">Product Name:</label><br />
+        <input type="text" id="prodName" @bind-value="@newProduct.Name" />
+    </p>
+    <p>
+        <label for="prodPrice">Product Price:</label><br />
+        <input type="text" id="prodPrice" @bind="@newProduct.Price" />
+    </p>
+    <p>
+        <label for="prodDesc">Product Description</label><br />
+        <textarea name="prodDesc" rows="5" cols="50" @bind="@newProduct.Description"></textarea>
+    </p>
+    <p>
+        <label for="prodImage">Product Image</label><br />
+        <InputFile OnChange="@LoadImage" accept="Images/*" id="prodImage" />
+    </p>
+    <p>
+        <button @onclick="AddProduct">Add</button>
+        <button @onclick="@(() => NavigationManager.NavigateTo(" /"))">Cancel</button>
+    </p>
+</div>
+
+@code
+{
+    private async Task LoadImage(InputFileChangeEventArgs e)
+    {
+        var image = e.File;
+        MemoryStream ms = new MemoryStream();
+        await image.OpenReadStream(long.MaxValue).CopyToAsync(ms);
+        newProduct.Image = "data:" + image.ContentType + ";base64," + Convert.ToBase64String(ms.ToArray());
+    }
+
+    private Product newProduct = new Product
+    {
+        Name = "Product Name",
+        Price = 0.00,
+        Description = "Product Description",
+    };
+
+    private void AddProduct()
+    {
+        int newId = IDatabase.Get().Last().Id + 1;
+        newProduct.Id = newId;
+        IDatabase.Get().Add(newProduct);
+        NavigationManager.NavigateTo("/");
+    }
+
+
+}
