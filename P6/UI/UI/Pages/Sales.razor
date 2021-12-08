@@ -1,0 +1,62 @@
+﻿@page "/sale"
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+
+<h3>Sales</h3>
+<table>
+    <tr>
+        <th>Costumer</th>
+        <th>Product</th>
+        <th>Total Price</th>
+        <th>Status</th>
+    </tr>
+    @foreach (var sale in sales)
+    {
+    <tr>
+        <td>Customer @sale.CustId</td>
+        <td>@sale.ProdName</td>
+        <td>@sale.ProdPrice</td>
+        <td>@sale.SaleStatus</td>
+        <td>
+            <button @onclick="() => PatchSale(sale)">Patch Status</button>
+            <button @onclick="() => DeleteSale(sale)">Delete</button>
+            <br /><br />
+        </td>
+    </tr>
+
+    }
+</table>
+
+@code {
+
+    const string SALE_URL = "http://localhost:8080/servicesale/api/sale";
+
+    private List<Sale> sales = new List<Sale>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        sales = await Http.GetFromJsonAsync<List<Sale>>(SALE_URL);
+    }
+
+    protected async Task PatchSale(Sale sale)
+    {
+        var request = new[] {
+            new {op = "replace", path = "SaleStatus", value = "Delivered"}
+        }.ToList();
+
+        var jsonRequest = JsonConvert.SerializeObject(request);
+
+        var content = new StringContent(jsonRequest, Encoding.UTF8, "application/json-patch+json");
+
+        await Http.PatchAsync(SALE_URL + "/" + sale.SaleId, content);
+        StateHasChanged();
+        NavigationManager.NavigateTo("/ui/sale", forceLoad: true);
+    }
+
+    protected async Task DeleteSale(Sale sale)
+    {
+        await Http.DeleteAsync(SALE_URL + "/" + sale.SaleId);
+        StateHasChanged();
+        NavigationManager.NavigateTo("/ui/sale", forceLoad: true);
+    }
+}

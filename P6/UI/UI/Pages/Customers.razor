@@ -1,0 +1,79 @@
+﻿@page "/customer"
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+
+
+<h3>Customers</h3>
+<button @onclick="() => PostCustomer()">Post New Customer</button>
+<div class="grid-container">
+    @foreach (var customer in customers)
+    {
+        <div>
+            <p>Customer Name: @customer.CustName</p>
+            <p>Customer Password: @customer.CustPassword</p>
+            <button @onclick="@(() => NavigationManager.NavigateTo("/ui/customer/" + customer.CustId))">View</button>
+            <button @onclick="() => PutCustomer(customer)">Put</button>
+            <button @onclick="() => PatchCustomer(customer)">Patch</button>
+            <button @onclick="() => DeleteCustomer(customer)">Delete</button>
+        </div>
+    }
+</div>
+
+
+
+@code {
+    const string CUSTOMER_URL = "http://localhost:8080/servicecustomer/api/customer";
+    private List<Customer> customers = new List<Customer>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        customers = await Http.GetFromJsonAsync<List<Customer>>(CUSTOMER_URL);
+    }
+
+    protected async Task PostCustomer()
+    {
+        var customer = new Customer
+        {
+            CustName = "New Customer",
+            CustPassword = "New Password"
+        };
+        await Http.PostAsJsonAsync(CUSTOMER_URL, customer);
+        StateHasChanged();
+        NavigationManager.NavigateTo("/ui/customer", forceLoad: true);
+    }
+
+    protected async Task PutCustomer(Customer customer)
+    {
+        var putCustomer = new Customer
+        {
+            CustId = customer.CustId,
+            CustName = "Put Customer",
+            CustPassword = "Put Password"
+        };
+        await Http.PutAsJsonAsync(CUSTOMER_URL + "/" + putCustomer.CustId, putCustomer);
+        StateHasChanged();
+        NavigationManager.NavigateTo("/ui/customer", forceLoad: true);
+    }
+
+    protected async Task PatchCustomer(Customer customer)
+    {
+        var request = new[] {
+            new {op = "replace", path = "CustPassword", value = "Patch Password"}
+        }.ToList();
+
+        var jsonRequest = JsonConvert.SerializeObject(request);
+
+        var content = new StringContent(jsonRequest, Encoding.UTF8, "application/json-patch+json");
+
+        await Http.PatchAsync(CUSTOMER_URL + "/" + customer.CustId, content);
+        StateHasChanged();
+        NavigationManager.NavigateTo("/ui/customer", forceLoad: true);
+    }
+
+    protected async Task DeleteCustomer(Customer customer)
+    {
+        await Http.DeleteAsync(CUSTOMER_URL + "/" + customer.CustId);
+        StateHasChanged();
+        NavigationManager.NavigateTo("/ui/customer", forceLoad: true);
+    }
+}

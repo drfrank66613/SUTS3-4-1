@@ -5,8 +5,25 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Pages\Baskets.razor.css" />
+    <None Remove="Pages\Customers.razor.css" />
+    <None Remove="Pages\Feedbacks.razor.css" />
+    <None Remove="Pages\Products.razor.css" />
+    <None Remove="Pages\Sales.razor.css" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Pages\Baskets.razor.css" />
+    <Content Include="Pages\Customers.razor.css" />
+    <Content Include="Pages\Feedbacks.razor.css" />
+    <Content Include="Pages\Products.razor.css" />
+    <Content Include="Pages\Sales.razor.css" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="5.0.6" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="5.0.6" PrivateAssets="all" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="System.Net.Http.Json" Version="5.0.0" />
   </ItemGroup>
 

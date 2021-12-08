@@ -1,0 +1,22 @@
+﻿@page "/customer/{id:int}"
+@inject HttpClient Http
+
+<h3>Customer @id</h3>
+
+<p>Customer Name: @viewedCustomer.CustName</p>
+<p>Customer Password: @viewedCustomer.CustPassword</p>
+
+
+@code {
+
+    [Parameter] public int id { get; set; }
+
+    const string CUSTOMER_URL = "http://localhost:8080/servicecustomer/api/customer";
+
+    private Customer viewedCustomer = new Customer();
+
+    protected override async Task OnInitializedAsync()
+    {
+        viewedCustomer = await Http.GetFromJsonAsync<Customer>(CUSTOMER_URL + "/" + id);
+    }
+}

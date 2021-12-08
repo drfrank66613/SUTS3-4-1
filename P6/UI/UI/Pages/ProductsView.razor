@@ -1,0 +1,22 @@
+﻿@page "/product/{id:int}"
+@inject HttpClient Http
+
+<h3>Product @id</h3>
+
+<p>Product Name: @viewedProduct.ProdName</p>
+<p>Product Price: @viewedProduct.ProdPrice</p>
+
+
+@code {
+
+    [Parameter] public int id { get; set; }
+
+    const string PRODUCT_URL = "http://localhost:8080/serviceproduct/api/product";
+
+    private Product viewedProduct = new Product();
+
+    protected override async Task OnInitializedAsync()
+    {
+        viewedProduct = await Http.GetFromJsonAsync<Product>(PRODUCT_URL + "/" + id);
+    }
+}

@@ -1,0 +1,55 @@
+﻿@page "/feedback"
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+
+<h3>Feedbacks</h3>
+<button @onclick="() => PostFeedback()">Post New Feedback</button>
+<table>
+    <tr>
+        <th>Customer</th>
+        <th>Feedback Content</th>
+        <th></th>
+    </tr>
+    @foreach (var feedback in feedbacks)
+    {
+        <tr>
+            <td>Customer @feedback.CustId</td>
+            <td>@feedback.FeedBody</td>
+            <td>
+                <button @onclick="() => DeleteFeedback(feedback)">Delete</button>
+            </td>
+        </tr>
+    }
+</table>
+
+@code {
+    const string FEEDBACK_URL = "http://localhost:8080/servicefeedback/api/feedback";
+    private List<Feedback>
+    feedbacks = new List<Feedback>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        feedbacks = await Http.GetFromJsonAsync<List<Feedback>>(FEEDBACK_URL);
+    }
+
+    protected async Task PostFeedback()
+    {
+        Random rnd = new Random();
+        var feedback = new Feedback
+        {
+            CustId = rnd.Next(1, 3),
+            FeedBody = "This is a new feedback"
+        };
+        await Http.PostAsJsonAsync(FEEDBACK_URL, feedback);
+        StateHasChanged();
+        NavigationManager.NavigateTo("/ui/feedback", forceLoad: true);
+    }
+
+
+    protected async Task DeleteFeedback(Feedback feedback)
+    {
+        await Http.DeleteAsync(FEEDBACK_URL + "/" + feedback.FeedId);
+        StateHasChanged();
+        NavigationManager.NavigateTo("/ui/feedback", forceLoad: true);
+    }
+}

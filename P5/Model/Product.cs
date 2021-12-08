@@ -8,6 +8,10 @@ namespace P4.Model
     /** Fill in */
     public class Product
     {
-        public String Name { get; set; }
+        public int ProdId { get; set; }
+        public String ProdName { get; set; }
+        public Double ProdPrice { get; set; }
+        public virtual ICollection<BasketWithProduct> BasketWithProducts { get; set; }
+        public virtual ICollection<SaleWithProduct> SaleWithProducts { get; set; }
     }
 }

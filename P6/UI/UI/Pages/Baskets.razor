@@ -1,0 +1,79 @@
+﻿@page "/basket"
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+
+<h3>Baskets</h3>
+<table>
+    <tr>
+        <th>Costumer</th>
+        <th>Product</th>
+        <th>Price</th>
+        <th>Quantity</th>
+    </tr>
+    @foreach (var basket in baskets)
+    {
+        <tr>
+            <td>Customer @basket.CustId</td>
+            <td>@basket.ProdName</td>
+            <td>@basket.ProdPrice</td>
+            <td>@basket.Qty</td>
+            <td>
+                <button @onclick="() => PatchBasket(basket)">Patch Quantity</button>
+                <button @onclick="() => DeleteBasket(basket)">Delete</button>
+                <br /><br />
+                <button @onclick="() => AddToSale()">Add to Sale</button>
+            </td>
+        </tr>
+        
+    }
+</table>
+
+
+@code {
+
+    const string BASKET_URL = "http://localhost:8080/servicebasket/api/basket";
+    const string SALE_URL = "http://localhost:8080/servicesale/api/sale";
+
+    private List<Basket> baskets = new List<Basket>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        baskets = await Http.GetFromJsonAsync<List<Basket>>(BASKET_URL);
+    }
+
+    protected async Task AddToSale()
+    {
+        var sale = new Sale
+        {
+            SaleStatus = "Delivering",
+            CustId = 1,
+            ProdName = "Smartphone",
+            ProdPrice = 99.99
+        };
+        await Http.PostAsJsonAsync(SALE_URL, sale);
+        StateHasChanged();
+        NavigationManager.NavigateTo("/ui/sale");
+    }
+
+    protected async Task PatchBasket(Basket basket)
+    {
+        var request = new[] {
+            new {op = "replace", path = "Qty", value = 5}
+        }.ToList();
+
+        var jsonRequest = JsonConvert.SerializeObject(request);
+
+        var content = new StringContent(jsonRequest, Encoding.UTF8, "application/json-patch+json");
+
+        await Http.PatchAsync(BASKET_URL + "/" + basket.BasketId, content);
+        StateHasChanged();
+        NavigationManager.NavigateTo("/ui/basket", forceLoad: true);
+    }
+
+    protected async Task DeleteBasket(Basket basket)
+    {
+        await Http.DeleteAsync(BASKET_URL + "/" + basket.BasketId);
+        StateHasChanged();
+        NavigationManager.NavigateTo("/ui/basket", forceLoad: true);
+    }
+}

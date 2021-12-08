@@ -1,15 +1,95 @@
 ﻿@page "/product"
 @inject HttpClient Http
+@inject NavigationManager NavigationManager
 
 <h3>Products</h3>
+<button @onclick="() => PostProduct()">Post New Product</button>
+<div class="grid-container">
+    @foreach (var product in products)
+    {
+        <div>
+            <p>Product Name: @product.ProdName</p>
+            <p>Product Price: @product.ProdPrice</p>
+            <button @onclick="@(() => NavigationManager.NavigateTo("/ui/product/" + product.ProdId))">View</button>
+            <button @onclick="() => PutProduct(product)">Put</button>
+            <button @onclick="() => PatchProduct(product)">Patch</button>
+            <button @onclick="() => DeleteProduct(product)">Delete</button>
+            <br />
+            <button @onclick="() => AddToBasket()">Add to basket</button>
+        </div>
+    }
+</div>
 
 @code {
-    private Product[] products;
+    const string PRODUCT_URL = "http://localhost:8080/serviceproduct/api/product";
+    const string BASKET_URL = "http://localhost:8080/servicebasket/api/basket";
+
+    private List<Product> products = new List<Product>();
 
     protected override async Task OnInitializedAsync()
     {
-        base.OnInitializedAsync();
+        products = await Http.GetFromJsonAsync<List<Product>>(PRODUCT_URL);
+    }
 
-        products = await Http.GetFromJsonAsync<Product[]>("api/product/");
+    protected async Task AddToBasket()
+    {
+        var basket = new Basket
+        {
+            BasketStatus = "pending",
+            Qty = 1,
+            CustId = 1,
+            ProdName = "Smartphone",
+            ProdPrice = 99.99
+        };
+        await Http.PostAsJsonAsync(BASKET_URL, basket);
+        StateHasChanged();
+        NavigationManager.NavigateTo("/ui/basket");
+    }
+
+    protected async Task PostProduct()
+    {
+        var product = new Product
+        {
+            ProdName = "New Product",
+            ProdPrice = 77.77
+        };
+        await Http.PostAsJsonAsync(PRODUCT_URL, product);
+        StateHasChanged();
+        NavigationManager.NavigateTo("/ui/product", forceLoad: true);
+    }
+
+    protected async Task PutProduct(Product product)
+    {
+        var putProduct = new Product
+        {
+            ProdId = product.ProdId,
+            ProdName = "Put Product",
+            ProdPrice = 55.55
+        };
+        await Http.PutAsJsonAsync(PRODUCT_URL + "/" + putProduct.ProdId, putProduct);
+        StateHasChanged();
+        NavigationManager.NavigateTo("/ui/product", forceLoad: true);
+    }
+
+    protected async Task PatchProduct(Product product)
+    {
+        var request = new[] {
+            new {op = "replace", path = "ProdName", value = "Patch Product"}
+        }.ToList();
+
+        var jsonRequest = JsonConvert.SerializeObject(request);
+
+        var content = new StringContent(jsonRequest, Encoding.UTF8, "application/json-patch+json");
+
+        await Http.PatchAsync(PRODUCT_URL + "/" + product.ProdId, content);
+        StateHasChanged();
+        NavigationManager.NavigateTo("/ui/product", forceLoad: true);
+    }
+
+    protected async Task DeleteProduct(Product product)
+    {
+        await Http.DeleteAsync(PRODUCT_URL + "/" + product.ProdId);
+        StateHasChanged();
+        NavigationManager.NavigateTo("/ui/product", forceLoad: true);
     }
 }
